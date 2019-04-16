@@ -3,7 +3,7 @@ class CreateSongs < ActiveRecord::Migration[5.2]
     create_table :songs do |t|
       t.string :name
       t.string :lyrics
-      t.references :album, foreign_key: true
+      t.references :album
 
       t.timestamps
     end
