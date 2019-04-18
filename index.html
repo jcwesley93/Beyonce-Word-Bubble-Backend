@@ -9,21 +9,25 @@
             /* No style rules here yet */       
         </style>
 </head>
-<body>
+<body style="background-color: #000; color: #fff; font-family: Arial;">
 
     <script type="text/javascript">
 
-        fetch('http://localhost:3000/albums/1').then(res => res.json()).then(data => {
+        fetch('http://localhost:3000/albums/5').then(res => res.json()).then(data => {
             dataset = {
             "children": []
         };
+        let countt = 0;
         for (const [word, count] of Object.entries(data.histogram)) {
-            dataset.children.push({"Word": word, "Count": count})
-            console.log(`There are ${count} ${word}s`)
+            if(countt < 60){
+                dataset.children.push({"Word": word, "Count": count})
+                countt += 1
+            }
         }
         // debugger
         var diameter = 700;
         var color = d3.scaleOrdinal(d3.schemeCategory20);
+
 
         var bubble = d3.pack(dataset)
             .size([diameter, diameter])
@@ -34,6 +38,21 @@
             .attr("width", diameter)
             .attr("height", diameter)
             .attr("class", "bubble");
+
+
+                 var defs = svg.append("defs");
+
+        //Filter for the outside glow
+        var filter = defs.append("filter")
+            .attr("id","glow");
+        filter.append("feGaussianBlur")
+            .attr("stdDeviation","3.5")
+            .attr("result","coloredBlur");
+        var feMerge = filter.append("feMerge");
+        feMerge.append("feMergeNode")
+            .attr("in","coloredBlur");
+        feMerge.append("feMergeNode")
+            .attr("in","SourceGraphic");
 
         var nodes = d3.hierarchy(dataset)
             .sum(function(d) { return d.Count; });
@@ -46,11 +65,11 @@
             })
             .append("g")
             .attr("class", "node")
+            .style("filter", "url(#glow)")
             .attr("transform", function(d) {
                 return "translate(" + d.x + "," + d.y + ")";
             })
             .on('mouseover', (d) => {
-                console.log(d)
                 document.getElementById('word').innerText = d.data.Word
                 document.getElementById('count').innerText = d.data.Count
             });
@@ -62,14 +81,16 @@
             simulation.force('charge', d3.forceManyBody().strength(1))
                 .on('tick', ticked)
 
+
             function ticked() {
-                var u = d3.select('svg')
+
+            var u = d3.select('svg')
                     .selectAll('circle')
                     .data(dataset.children)
 
                 u.enter()
                     .append('circle')
-                    .attr('r', 5)
+                    .attr('r', 1)
                     .merge(u)
                     .attr('cx', function(d) {
                     return d.x
